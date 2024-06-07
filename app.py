@@ -5,6 +5,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from dotenv import load_dotenv
 import logging
 import base64
+from functools import wraps
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,7 +21,7 @@ API_KEY = os.getenv('MY_API_KEY')
 app.logger.debug(f"Loaded API Key: {API_KEY}")
 
 # Google Sheets Configuration
-def get_google_sheet():
+def get_google_sheet(sheet_name):
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         creds_path = os.getenv('GOOGLE_SHEETS_SERVICE_ACCOUNT_SECRET')
@@ -29,11 +30,11 @@ def get_google_sheet():
             return None
         creds = ServiceAccountCredentials.from_json_keyfile_name(creds_path, scope)
         client = gspread.authorize(creds)
-        sheet = client.open("tides_web_scraped").sheet1
-        app.logger.info("Successfully accessed Google Sheet: tides_web_scraped")
+        sheet = client.open(f"{sheet_name}").sheet1
+        app.logger.info(f"Successfully accessed Google Sheet: {sheet_name}")
         return sheet
     except gspread.exceptions.SpreadsheetNotFound:
-        app.logger.error("Spreadsheet not found. Please check the name 'tides_web_scraped'.")
+        app.logger.error("Spreadsheet not found. Please check the name '{sheet_name}}'.")
         return None
     except gspread.exceptions.APIError as api_err:
         app.logger.error(f"Google API error: {api_err}")
@@ -44,6 +45,7 @@ def get_google_sheet():
 
 # Decorator to require API key via Basic Auth
 def require_api_key(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get('Authorization')
         app.logger.debug(f"Authorization header received: {auth_header}")
@@ -70,14 +72,11 @@ def require_api_key(func):
 def index():
     return 'Web App is up and running'
 
-
-@app.route('/get_data', methods=['GET'])
-@require_api_key
-def get_data():
+def get_data(sheet_name):
     try:
-        app.logger.info("Received data request")
+        app.logger.info(f"Received data request for sheet: {sheet_name}")
         
-        sheet = get_google_sheet()
+        sheet = get_google_sheet(sheet_name)
         if sheet is None:
             return jsonify({"error": "Failed to access Google Sheet"}), 500
         
@@ -90,6 +89,21 @@ def get_data():
     except Exception as e:
         app.logger.error(f"Get data error: {e}")
         return jsonify({"error": "Failed to retrieve data"}), 500
+
+@app.route('/get_data_tides', methods=['GET'])
+@require_api_key
+def get_data_tides():
+    return get_data("tides_web_scraped")
+
+@app.route('/get_data_artetv', methods=['GET'])
+@require_api_key
+def get_data_artetv():
+    return get_data("tv_guide_arte")
+
+@app.route('/get_data_raiuno', methods=['GET'])
+@require_api_key
+def get_data_raiuno():
+    return get_data("tv_guide_raiuno")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)

@@ -1,3 +1,4 @@
+#TODO modify in light of added param to get_google_sheet()
 import unittest
 from unittest.mock import patch, MagicMock
 import sys
@@ -24,7 +25,8 @@ class TestGoogleSheetsConnection(unittest.TestCase):
         # Assert
         mock_from_json_keyfile_name.assert_called_once()
         mock_authorize.assert_called_once()
-        mock_client.open.assert_called_once_with("tides_web_scraped")
+        # mock_client.open.assert_called_once_with("tides_web_scraped")
+        mock_client.open.assert_called_once_with("tv_guide_arte")
         self.assertEqual(result, mock_sheet1)
 
 if __name__ == '__main__':

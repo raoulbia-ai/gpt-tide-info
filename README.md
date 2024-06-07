@@ -54,9 +54,10 @@ decorator. It fetches data from a Google Sheet. If there's an error, it returns 
 You can build and deploy the application with the following commands:
 
 ```
-docker build -t myapp:latest .
+az login
+docker build --no-cache -t myapp:latest .
 az acr login --name myacr
-docker tag myapp:latest expensetrackerai.azurecr.io/myapp:latest
+docker tag myapp:latest myacr.azurecr.io/myapp:latest
 docker push myacr.azurecr.io/myapp:latest
 ```
 
@@ -77,6 +78,8 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 
 
 ## Addendum: ChatGPT Actions JSON Schema
+
+### Schema for Tide Info
 
 ```
 {
@@ -195,4 +198,77 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
     }
   ]
 }
+```
+
+### Schema for ArteTV and RaiUno
+```
+openapi: 3.1.0
+info:
+  title: TV Guide API
+  description: API to retrieve TV program schedules.
+  version: 1.0.0
+servers:
+  - url: https://cybcai.azurewebsites.net
+    description: Main (production) server
+paths:
+  /get_data_artetv:
+    get:
+      operationId: getProgramsArte
+      summary: Retrieves the list of TV programs.
+      description: >
+        This endpoint returns a list of TV programs including their start times, titles, durations, and options to view
+        more details.
+      responses:
+        "200":
+          description: A JSON array of TV programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    startTime:
+                      type: string
+                      format: time
+                      description: The start time of the program.
+                      example: 20:51
+                    title:
+                      type: string
+                      description: The title of the program.
+                      example: Regarder A Musée Vous, A Musée Moi Danseuses à la barre, Edgar Degas - Billy Elliot ou presque...
+                    duration:
+                      type: string
+                      description: The duration of the program.
+                      example: 3 min
+                    detailsUrl:
+                      type: string
+                      format: uri
+                      description: URL to view more details about the program.
+                      example: Voir le programme
+  /get_data_raiuno:
+    get:
+      operationId: getProgramsRai
+      summary: Retrieves the list of TV programs for Arte TV.
+      description: |
+        This endpoint returns a list of TV programs for Arte TV including their start times and titles.
+      responses:
+        "200":
+          description: A JSON array of Arte TV programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    startTime:
+                      type: string
+                      format: time
+                      description: The start time of the program.
+                      example: 06:00
+                    title:
+                      type: string
+                      description: The title of the program.
+                      example: RaiNews24 - Previsioni sulla viabilità CCISS Viaggiare informati
 ```
