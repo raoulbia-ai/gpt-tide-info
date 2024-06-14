@@ -55,10 +55,10 @@ You can build and deploy the application with the following commands:
 
 ```
 az login
-docker build --no-cache -t myapp:latest .
-az acr login --name myacr
-docker tag myapp:latest myacr.azurecr.io/myapp:latest
-docker push myacr.azurecr.io/myapp:latest
+az acr login --name expensetrackerai
+docker build -t expensetrackerai.azurecr.io/google-sheet-reader:latest .
+docker tag expensetrackerai.azurecr.io/google-sheet-reader:latest expensetrackerai.azurecr.io/google-sheet-reader:latest
+docker push expensetrackerai.azurecr.io/google-sheet-reader:latest
 ```
 
 ### Testing
